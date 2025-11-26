@@ -2,12 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Biome Supabase Test</title>
+    <title>Biome QR Card Lookup & Claim</title>
     <style>
       body {
         font-family: system-ui, sans-serif;
         padding: 20px;
-        max-width: 400px;
+        max-width: 480px;
         margin: 0 auto;
       }
       label,
@@ -17,163 +17,348 @@
         width: 100%;
         margin-bottom: 10px;
       }
+      h1,
+      h2,
+      h3 {
+        margin-top: 20px;
+      }
       pre {
         background: #f4f4f4;
         padding: 10px;
         border-radius: 6px;
         white-space: pre-wrap;
       }
+      .status {
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+      }
+      .status.error {
+        color: #c00;
+      }
+      .status.ok {
+        color: #0a7a2f;
+      }
+      button:disabled {
+        opacity: 0.5;
+      }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body>
-  <h1>Biome Card Lookup & Claim</h1>
+    <h1>Biome QR Card Lookup & Claim</h1>
 
-  <!-- LOGIN -->
-  <h2>Account</h2>
-  <label>Email</label>
-  <input id="email" type="email" placeholder="you@example.com" />
-  <label>Password</label>
-  <input id="password" type="password" placeholder="Your password" />
-  <button id="login">Log in / Sign up</button>
-  <div id="auth-status"></div>
+    <!-- ACCOUNT -->
+    <h2>Account</h2>
+    <label for="email">Email</label>
+    <input id="email" type="email" placeholder="you@example.com" />
 
-  <!-- LOOKUP -->
-  <h2>Card Lookup</h2>
-  <label>UID:</label>
-  <input id="uid" placeholder="TEST-001" />
-  <button id="lookup">Lookup Card</button>
+    <label for="password">Password</label>
+    <input id="password" type="password" placeholder="Your password" />
 
-  <pre id="result">No card loaded yet.</pre>
+    <button id="login">Log in / Sign up</button>
+    <div id="auth-status" class="status"></div>
 
-  <button id="claim" disabled>Claim this card</button>
-  <div id="claim-status"></div>
+    <!-- USERNAME -->
+    <h3>Username</h3>
+    <input id="username" placeholder="Pick a username" />
+    <button id="save-username">Save username</button>
+    <div id="username-status" class="status"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-      // 👇 FILL THESE 3 VALUES FROM SUPABASE
+    <!-- CARD LOOKUP -->
+    <h2>Card Lookup</h2>
+    <label for="uid">UID</label>
+    <input id="uid" placeholder="e.g. TEST-001" />
+    <button id="lookup">Lookup Card</button>
+
+    <h3>Card Info</h3>
+    <pre id="result">No card loaded yet.</pre>
+
+    <button id="claim" disabled>Claim this card</button>
+    <div id="claim-status" class="status"></div>
+
+    <script>
+      // Supabase config (your project)
       const SUPABASE_URL = "https://owzdmecflzxdfbtxvfmb.supabase.co";
-      const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93emRtZWNmbHp4ZGZidHh2Zm1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3OTY3ODYsImV4cCI6MjA3OTM3Mjc4Nn0.fUa-kAsMP-j_1QM63pgb7oX4wyuJPuZ2touDHNbtMkM";
-      const TABLE_NAME = "QR Data"; // e.g. "cards"
+      const SUPABASE_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93emRtZWNmbHp4ZGZidHh2Zm1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3OTY3ODYsImV4cCI6MjA3OTM3Mjc4Nn0.fUa-kAsMP-j_1QM63pgb7oX4wyuJPuZ2touDHNbtMkM";
+      const TABLE_NAME = "QR Data"; // your cards table
 
-    const { createClient } = supabase;
-    const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+      const { createClient } = supabase;
+      const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let currentCardUID = null;
+      let currentCardUID = null;
 
-    // ---- Login ----
-    document.getElementById("login").onclick = async () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+      const authStatusEl = document.getElementById("auth-status");
+      const usernameStatusEl = document.getElementById("username-status");
+      const claimStatusEl = document.getElementById("claim-status");
+      const resultEl = document.getElementById("result");
 
-      let { data, error } = await db.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        // maybe they don't exist → sign them up
-        let signUp = await db.auth.signUp({ email, password });
-        document.getElementById("auth-status").textContent =
-          "Signed up. Check email if needed.";
-      } else {
-        document.getElementById("auth-status").textContent =
-          "Logged in as: " + data.user.email;
-      }
-    };
-
-    // ---- Lookup ----
-    async function lookup(uid) {
-      const r = document.getElementById("result");
-      currentCardUID = uid;
-      r.textContent = "Loading...";
-
-      let { data, error } = await db
-        .from(TABLE_NAME)
-        .select("*")
-        .eq("uid", uid)
-        .maybeSingle();
-
-      if (!data) {
-        r.textContent = "Card not found.";
-        document.getElementById("claim").disabled = true;
-        return;
-      }
-
-      const name = data.card_name || "(no card_name)";
-      const rarity = data.rarity || "(no rarity)";
-
-      let displayRegisteredTo = "(unregistered)";
-
-      if (data.registered_to) {
-        // check logged-in user
-        const sessionRes = await db.auth.getSession();
-        const currentUser = sessionRes.data.session?.user;
-
-        if (currentUser && currentUser.id === data.registered_to) {
-          displayRegisteredTo = `${currentUser.email} (you)`;
+      // ---------- AUTH ----------
+      async function refreshAuthStatus() {
+        const { data, error } = await db.auth.getSession();
+        if (error) {
+          authStatusEl.textContent = "Auth error.";
+          authStatusEl.className = "status error";
+          return;
+        }
+        const session = data.session;
+        if (session?.user) {
+          authStatusEl.textContent = `Logged in as: ${session.user.email}`;
+          authStatusEl.className = "status ok";
         } else {
-          displayRegisteredTo = "Another player";
+          authStatusEl.textContent = "Not logged in.";
+          authStatusEl.className = "status";
         }
       }
 
-      r.textContent =
-        `Card Name: ${name}\n` +
-        `Rarity: ${rarity}\n` +
-        `Registered To: ${displayRegisteredTo}\n`;
+      document.getElementById("login").onclick = async () => {
+        claimStatusEl.textContent = "";
+        usernameStatusEl.textContent = "";
 
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
 
-      // enable claim if unregistered
-      document.getElementById("claim").disabled = !!data.registered_to;
-    }
+        if (!email || !password) {
+          authStatusEl.textContent = "Please enter email and password.";
+          authStatusEl.className = "status error";
+          return;
+        }
 
-    document.getElementById("lookup").onclick = () => {
-      const uid = document.getElementById("uid").value;
-      lookup(uid);
-    };
+        // Try login first
+        let { data, error } = await db.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-    // ---- Claim ----
-    document.getElementById("claim").onclick = async () => {
-      const cs = document.getElementById("claim-status");
+        if (error) {
+          // If login fails, try sign up
+          const signup = await db.auth.signUp({ email, password });
+          if (signup.error) {
+            authStatusEl.textContent = "Login / signup failed.";
+            authStatusEl.className = "status error";
+            console.error(signup.error);
+          } else {
+            authStatusEl.textContent =
+              "Account created. Check email if confirmation is required.";
+            authStatusEl.className = "status ok";
+          }
+        } else {
+          authStatusEl.textContent = `Logged in as: ${data.user.email}`;
+          authStatusEl.className = "status ok";
+        }
 
-      // need a user
-      const session = await db.auth.getSession();
-      if (!session.data.session) {
-        cs.textContent = "You must log in first.";
-        return;
+        await refreshAuthStatus();
+        await loadUsername();
+      };
+
+      // ---------- USERNAME ----------
+      async function loadUsername() {
+        const input = document.getElementById("username");
+        input.value = "";
+        usernameStatusEl.textContent = "";
+
+        const sessionRes = await db.auth.getSession();
+        const user = sessionRes.data.session?.user;
+        if (!user) {
+          usernameStatusEl.textContent = "Log in to set a username.";
+          return;
+        }
+
+        const { data, error } = await db
+          .from("profiles")
+          .select("username")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (data?.username) {
+          input.value = data.username;
+          usernameStatusEl.textContent = "Username saved.";
+          usernameStatusEl.className = "status ok";
+        } else {
+          usernameStatusEl.textContent =
+            "Choose a username and click Save.";
+          usernameStatusEl.className = "status";
+        }
       }
 
-      const userId = session.data.session.user.id;
+      document.getElementById("save-username").onclick = async () => {
+        const input = document.getElementById("username");
+        const name = input.value.trim();
+        usernameStatusEl.className = "status";
 
-      let { data, error } = await db
-        .from(TABLE_NAME)
-        .update({
-          registered_to: userId,
-          registered_at: new Date().toISOString(),
-        })
-        .eq("uid", currentCardUID)
-        .is("registered_to", null) // CLAIM ONLY IF STILL UNREGISTERED
-        .select()
-        .maybeSingle();
+        if (!name) {
+          usernameStatusEl.textContent = "Username cannot be empty.";
+          usernameStatusEl.className = "status error";
+          return;
+        }
 
-      if (!data) {
-        cs.textContent = "Too late, someone claimed it first!";
-        lookup(currentCardUID);
-        return;
+        const sessionRes = await db.auth.getSession();
+        const user = sessionRes.data.session?.user;
+        if (!user) {
+          usernameStatusEl.textContent = "Log in first.";
+          usernameStatusEl.className = "status error";
+          return;
+        }
+
+        const { error } = await db
+          .from("profiles")
+          .upsert({ id: user.id, username: name });
+
+        if (error) {
+          console.error(error);
+          usernameStatusEl.textContent =
+            "Error saving username (maybe taken?).";
+          usernameStatusEl.className = "status error";
+        } else {
+          usernameStatusEl.textContent = "Username saved.";
+          usernameStatusEl.className = "status ok";
+        }
+      };
+
+      // ---------- LOOKUP ----------
+      async function lookup(uid) {
+        claimStatusEl.textContent = "";
+        document.getElementById("claim").disabled = true;
+
+        const trimmed = (uid || "").trim();
+        if (!trimmed) {
+          resultEl.textContent = "Please enter a UID.";
+          return;
+        }
+
+        currentCardUID = trimmed;
+        document.getElementById("uid").value = trimmed;
+        resultEl.textContent = "Loading...";
+
+        const { data, error } = await db
+          .from(TABLE_NAME)
+          .select("*")
+          .eq("uid", trimmed)
+          .maybeSingle();
+
+        if (error) {
+          console.error(error);
+          resultEl.textContent = "Error talking to Supabase.";
+          return;
+        }
+
+        if (!data) {
+          resultEl.textContent = "Card not found.";
+          return;
+        }
+
+        const name = data.card_name || "(no card_name)";
+        const rarity = data.rarity || "(no rarity)";
+
+        let displayRegisteredTo = "(unregistered)";
+
+        if (data.registered_to) {
+          // look up owner's username
+          const { data: profile } = await db
+            .from("profiles")
+            .select("username")
+            .eq("id", data.registered_to)
+            .maybeSingle();
+
+          const sessionRes = await db.auth.getSession();
+          const currentUser = sessionRes.data.session?.user;
+
+          if (currentUser && currentUser.id === data.registered_to) {
+            const myName = profile?.username || "(no username)";
+            displayRegisteredTo = `${myName} (you)`;
+          } else {
+            displayRegisteredTo = profile?.username || "Another player";
+          }
+        }
+
+        resultEl.textContent =
+          `Card Name: ${name}\n` +
+          `Rarity: ${rarity}\n` +
+          `Registered To: ${displayRegisteredTo}\n`;
+
+        // enable claim if unregistered
+        document.getElementById("claim").disabled = !!data.registered_to;
+        if (!data.registered_to) {
+          claimStatusEl.textContent =
+            "This card is unregistered. Log in and claim it.";
+        } else {
+          claimStatusEl.textContent = "";
+        }
       }
 
-      cs.textContent = "You claimed this card!";
-      lookup(currentCardUID);
-    };
+      document.getElementById("lookup").onclick = () => {
+        const uid = document.getElementById("uid").value;
+        lookup(uid);
+      };
 
-    // ---- Auto-load from URL ----
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("uid")) {
-      const auto = params.get("uid");
-      document.getElementById("uid").value = auto;
-      lookup(auto);
-    }
-  </script>
-</body>
+      // ---------- CLAIM ----------
+      document.getElementById("claim").onclick = async () => {
+        claimStatusEl.textContent = "";
+        const button = document.getElementById("claim");
 
+        if (!currentCardUID) {
+          claimStatusEl.textContent = "Lookup a card first.";
+          claimStatusEl.className = "status error";
+          return;
+        }
 
+        const sessionRes = await db.auth.getSession();
+        const user = sessionRes.data.session?.user;
+        if (!user) {
+          claimStatusEl.textContent = "You must log in first.";
+          claimStatusEl.className = "status error";
+          return;
+        }
+
+        button.disabled = true;
+
+        const { data, error } = await db
+          .from(TABLE_NAME)
+          .update({
+            registered_to: user.id,
+            registered_at: new Date().toISOString(),
+          })
+          .eq("uid", currentCardUID)
+          .is("registered_to", null) // only if still unregistered
+          .select()
+          .maybeSingle();
+
+        if (error) {
+          console.error(error);
+          claimStatusEl.textContent =
+            "Error while claiming card. Try again.";
+          claimStatusEl.className = "status error";
+          button.disabled = false;
+          return;
+        }
+
+        if (!data) {
+          // someone else grabbed it
+          claimStatusEl.textContent =
+            "Too late! Someone already claimed this card.";
+          claimStatusEl.className = "status error";
+          await lookup(currentCardUID);
+          return;
+        }
+
+        claimStatusEl.textContent = "You claimed this card!";
+        claimStatusEl.className = "status ok";
+        await lookup(currentCardUID);
+      };
+
+      // ---------- URL AUTO-LOAD ----------
+      (function autoFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const uid = params.get("uid");
+        if (uid) {
+          document.getElementById("uid").value = uid;
+          lookup(uid);
+        }
+      })();
+
+      // Initial status
+      refreshAuthStatus();
+      loadUsername();
+    </script>
+  </body>
 </html>
