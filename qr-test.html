@@ -4,77 +4,371 @@
     <meta charset="UTF-8" />
     <title>Biome QR Card Lookup & Claim</title>
     <style>
+      :root {
+        --bg: #050816;
+        --panel: #0f172a;
+        --panel-soft: #111827;
+        --accent: #22c55e;
+        --accent-soft: rgba(34, 197, 94, 0.16);
+        --accent-alt: #38bdf8;
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --danger: #f97373;
+        --radius-lg: 18px;
+        --radius-md: 10px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
       body {
-        font-family: system-ui, sans-serif;
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: radial-gradient(circle at top, #0b1120, #020617 52%);
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         padding: 20px;
-        max-width: 480px;
-        margin: 0 auto;
       }
-      label,
-      input,
-      button {
-        display: block;
+
+      .page {
         width: 100%;
-        margin-bottom: 10px;
+        max-width: 520px;
       }
-      h1,
-      h2,
-      h3 {
-        margin-top: 20px;
+
+      .shell {
+        background: linear-gradient(145deg, #020617, #020617 32%, #0f172a);
+        border-radius: 26px;
+        padding: 18px;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.18);
       }
-      pre {
-        background: #f4f4f4;
-        padding: 10px;
-        border-radius: 6px;
-        white-space: pre-wrap;
+
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
       }
-      .status {
-        font-size: 0.85rem;
+
+      .logo-dot {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 30% 15%, #f9fafb, #22c55e);
+        box-shadow: 0 0 30px rgba(34, 197, 94, 0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #052e16;
+      }
+
+      .title-wrap h1 {
+        font-size: 1.15rem;
+        letter-spacing: 0.06em;
+        margin: 0;
+        text-transform: uppercase;
+        color: #f9fafb;
+      }
+
+      .title-wrap p {
+        margin: 2px 0 0;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+        gap: 14px;
+      }
+
+      @media (max-width: 720px) {
+        .shell {
+          padding: 16px;
+        }
+        .grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      .panel {
+        background: var(--panel);
+        border-radius: var(--radius-lg);
+        padding: 14px 14px 12px;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+      }
+
+      .panel + .panel {
+        margin-top: 10px;
+      }
+
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         margin-bottom: 8px;
       }
-      .status.error {
-        color: #c00;
+
+      .panel-header h2 {
+        margin: 0;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
       }
-      .status.ok {
-        color: #0a7a2f;
+
+      .chip {
+        padding: 2px 7px;
+        border-radius: 999px;
+        font-size: 0.65rem;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        color: var(--text-muted);
       }
+
+      label {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+      }
+
+      input {
+        width: 100%;
+        padding: 7px 9px;
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        background: #020617;
+        color: var(--text-main);
+        font-size: 0.8rem;
+        outline: none;
+      }
+
+      input::placeholder {
+        color: rgba(148, 163, 184, 0.7);
+      }
+
+      input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.6);
+      }
+
+      button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 7px 11px;
+        border-radius: 999px;
+        border: none;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        transition: all 0.15s ease-out;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: #022c22;
+        box-shadow: 0 8px 18px rgba(34, 197, 94, 0.4);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(34, 197, 94, 0.55);
+      }
+
+      .btn-ghost {
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text-muted);
+        border: 1px solid rgba(148, 163, 184, 0.4);
+      }
+
+      .btn-ghost:hover {
+        border-color: var(--accent-alt);
+        color: var(--accent-alt);
+        box-shadow: 0 0 18px rgba(56, 189, 248, 0.5);
+      }
+
       button:disabled {
-        opacity: 0.5;
+        opacity: 0.55;
+        cursor: default;
+        box-shadow: none;
+        transform: none;
+      }
+
+      .button-row {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+      }
+
+      .status {
+        font-size: 0.75rem;
+        margin-top: 5px;
+        color: var(--text-muted);
+      }
+
+      .status.ok {
+        color: var(--accent);
+      }
+
+      .status.error {
+        color: var(--danger);
+      }
+
+      .card-panel {
+        background: radial-gradient(circle at top left, #022c22, #020617);
+        border-radius: var(--radius-lg);
+        padding: 12px 12px 10px;
+        border: 1px solid rgba(34, 197, 94, 0.4);
+        box-shadow: 0 0 35px rgba(34, 197, 94, 0.35);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 6px;
+      }
+
+      .card-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+      }
+
+      .card-meta {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--accent-alt);
+      }
+
+      .card-body-line {
+        font-size: 0.8rem;
+        margin-bottom: 2px;
+      }
+
+      .card-body-label {
+        color: var(--text-muted);
+      }
+
+      .card-empty {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-style: italic;
+      }
+
+      .claim-row {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
       }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body>
-    <h1>Biome QR Card Lookup & Claim</h1>
+    <div class="page">
+      <div class="shell">
+        <div class="header">
+          <div class="logo-dot">B</div>
+          <div class="title-wrap">
+            <h1>Biome QR Registry</h1>
+            <p>Scan · Lookup · Claim your physical cards</p>
+          </div>
+        </div>
 
-    <!-- ACCOUNT -->
-    <h2>Account</h2>
-    <label for="email">Email</label>
-    <input id="email" type="email" placeholder="you@example.com" />
+        <div class="grid">
+          <!-- LEFT: account + username -->
+          <div>
+            <div class="panel">
+              <div class="panel-header">
+                <h2>Account</h2>
+                <span class="chip">Supabase Auth</span>
+              </div>
+              <label for="email">Email</label>
+              <input id="email" type="email" placeholder="you@example.com" />
+              <label for="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                placeholder="Your password"
+              />
+              <div class="button-row">
+                <button id="login" class="btn-primary">Log in / Sign up</button>
+              </div>
+              <div id="auth-status" class="status"></div>
+            </div>
 
-    <label for="password">Password</label>
-    <input id="password" type="password" placeholder="Your password" />
+            <div class="panel" style="margin-top: 10px">
+              <div class="panel-header">
+                <h2>Username</h2>
+                <span class="chip">Public Name</span>
+              </div>
+              <input id="username" placeholder="Pick a username" />
+              <div class="button-row">
+                <button id="save-username" class="btn-ghost">
+                  Save username
+                </button>
+              </div>
+              <div id="username-status" class="status"></div>
+            </div>
+          </div>
 
-    <button id="login">Log in / Sign up</button>
-    <div id="auth-status" class="status"></div>
+          <!-- RIGHT: lookup + card -->
+          <div>
+            <div class="panel">
+              <div class="panel-header">
+                <h2>Card Lookup</h2>
+                <span class="chip">UID Scan</span>
+              </div>
+              <label for="uid">UID</label>
+              <input id="uid" placeholder="e.g. TEST-001" />
+              <div class="button-row">
+                <button id="lookup" class="btn-primary">Lookup Card</button>
+              </div>
+            </div>
 
-    <!-- USERNAME -->
-    <h3>Username</h3>
-    <input id="username" placeholder="Pick a username" />
-    <button id="save-username">Save username</button>
-    <div id="username-status" class="status"></div>
-
-    <!-- CARD LOOKUP -->
-    <h2>Card Lookup</h2>
-    <label for="uid">UID</label>
-    <input id="uid" placeholder="e.g. TEST-001" />
-    <button id="lookup">Lookup Card</button>
-
-    <h3>Card Info</h3>
-    <pre id="result">No card loaded yet.</pre>
-
-    <button id="claim" disabled>Claim this card</button>
-    <div id="claim-status" class="status"></div>
+            <div class="panel" style="margin-top: 10px">
+              <div class="panel-header">
+                <h2>Card</h2>
+                <span class="chip">Bound to QR</span>
+              </div>
+              <div id="card-shell" class="card-panel">
+                <div class="card-empty" id="card-empty">
+                  No card loaded yet. Scan a QR or enter a UID.
+                </div>
+                <div id="card-content" style="display: none">
+                  <div class="card-header">
+                    <div class="card-title" id="card-name">Card Name</div>
+                    <div class="card-meta" id="card-rarity">RARITY</div>
+                  </div>
+                  <div class="card-body-line">
+                    <span class="card-body-label">Registered to: </span
+                    ><span id="card-owner">—</span>
+                  </div>
+                </div>
+              </div>
+              <div class="claim-row">
+                <button id="claim" class="btn-primary" disabled>
+                  Claim this card
+                </button>
+              </div>
+              <div id="claim-status" class="status"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script>
       // Supabase config (your project)
@@ -91,7 +385,12 @@
       const authStatusEl = document.getElementById("auth-status");
       const usernameStatusEl = document.getElementById("username-status");
       const claimStatusEl = document.getElementById("claim-status");
-      const resultEl = document.getElementById("result");
+
+      const cardEmptyEl = document.getElementById("card-empty");
+      const cardContentEl = document.getElementById("card-content");
+      const cardNameEl = document.getElementById("card-name");
+      const cardRarityEl = document.getElementById("card-rarity");
+      const cardOwnerEl = document.getElementById("card-owner");
 
       // ---------- AUTH ----------
       async function refreshAuthStatus() {
@@ -156,6 +455,7 @@
         const input = document.getElementById("username");
         input.value = "";
         usernameStatusEl.textContent = "";
+        usernameStatusEl.className = "status";
 
         const sessionRes = await db.auth.getSession();
         const user = sessionRes.data.session?.user;
@@ -177,7 +477,6 @@
         } else {
           usernameStatusEl.textContent =
             "Choose a username and click Save.";
-          usernameStatusEl.className = "status";
         }
       }
 
@@ -215,20 +514,37 @@
         }
       };
 
+      // ---------- CARD RENDER ----------
+      function showEmptyCard(message) {
+        cardEmptyEl.textContent = message;
+        cardEmptyEl.style.display = "block";
+        cardContentEl.style.display = "none";
+      }
+
+      function showCard(name, rarity, ownerText) {
+        cardNameEl.textContent = name;
+        cardRarityEl.textContent = rarity.toUpperCase();
+        cardOwnerEl.textContent = ownerText;
+
+        cardEmptyEl.style.display = "none";
+        cardContentEl.style.display = "block";
+      }
+
       // ---------- LOOKUP ----------
       async function lookup(uid) {
         claimStatusEl.textContent = "";
+        claimStatusEl.className = "status";
         document.getElementById("claim").disabled = true;
 
         const trimmed = (uid || "").trim();
         if (!trimmed) {
-          resultEl.textContent = "Please enter a UID.";
+          showEmptyCard("Please enter a UID.");
           return;
         }
 
         currentCardUID = trimmed;
         document.getElementById("uid").value = trimmed;
-        resultEl.textContent = "Loading...";
+        showEmptyCard("Loading card…");
 
         const { data, error } = await db
           .from(TABLE_NAME)
@@ -238,12 +554,12 @@
 
         if (error) {
           console.error(error);
-          resultEl.textContent = "Error talking to Supabase.";
+          showEmptyCard("Error talking to Supabase.");
           return;
         }
 
         if (!data) {
-          resultEl.textContent = "Card not found.";
+          showEmptyCard("Card not found.");
           return;
         }
 
@@ -271,10 +587,7 @@
           }
         }
 
-        resultEl.textContent =
-          `Card Name: ${name}\n` +
-          `Rarity: ${rarity}\n` +
-          `Registered To: ${displayRegisteredTo}\n`;
+        showCard(name, rarity, displayRegisteredTo);
 
         // enable claim if unregistered
         document.getElementById("claim").disabled = !!data.registered_to;
@@ -294,6 +607,7 @@
       // ---------- CLAIM ----------
       document.getElementById("claim").onclick = async () => {
         claimStatusEl.textContent = "";
+        claimStatusEl.className = "status";
         const button = document.getElementById("claim");
 
         if (!currentCardUID) {
@@ -333,7 +647,6 @@
         }
 
         if (!data) {
-          // someone else grabbed it
           claimStatusEl.textContent =
             "Too late! Someone already claimed this card.";
           claimStatusEl.className = "status error";
@@ -353,6 +666,8 @@
         if (uid) {
           document.getElementById("uid").value = uid;
           lookup(uid);
+        } else {
+          showEmptyCard("No card loaded yet. Scan a QR or enter a UID.");
         }
       })();
 
