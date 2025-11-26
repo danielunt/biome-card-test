@@ -4,13 +4,10 @@
     <meta charset="UTF-8" />
     <title>Biome QR Card Lookup & Claim</title>
     <style>
-      /* -------------- THEME -------------- */
       :root {
         --bg: #050816;
         --panel: #0f172a;
-        --panel-soft: #111827;
-        --accent: #facc15;                /* YELLOW */
-        --accent-soft: rgba(250, 204, 21, 0.16);
+        --accent: #facc15;
         --accent-glow: rgba(250, 204, 21, 0.55);
         --text-main: #f9fafb;
         --text-muted: #9ca3af;
@@ -27,39 +24,39 @@
         margin: 0;
         min-height: 100vh;
         font-family: system-ui, sans-serif;
-        background: #030712;
+        background: #020617;
         color: var(--text-main);
         display: flex;
         justify-content: center;
-        padding: 16px;
+        padding: 14px;
       }
 
       .page {
         width: 100%;
-        max-width: 500px; /* mobile-first */
+        max-width: 480px; /* mobile-first */
       }
 
       .shell {
-        background: #0b0f1d;
+        background: #030712;
         border-radius: 24px;
-        padding: 18px;
+        padding: 16px;
         border: 1px solid rgba(250, 204, 21, 0.25);
-        box-shadow: 0 0 40px rgba(250, 204, 21, 0.12);
+        box-shadow: 0 0 32px rgba(250, 204, 21, 0.18);
       }
 
       .header {
         display: flex;
         align-items: center;
-        gap: 12px;
-        margin-bottom: 14px;
+        gap: 10px;
+        margin-bottom: 10px;
       }
 
       .logo-dot {
-        width: 38px;
-        height: 38px;
+        width: 34px;
+        height: 34px;
         border-radius: 999px;
         background: radial-gradient(circle at 30% 20%, #fff8e1, #facc15);
-        box-shadow: 0 0 30px var(--accent-glow);
+        box-shadow: 0 0 26px var(--accent-glow);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -69,52 +66,50 @@
 
       h1 {
         margin: 0;
-        font-size: 1rem;
-        letter-spacing: 0.07em;
-        color: white;
+        font-size: 0.95rem;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
       }
 
       .sub {
-        margin: 2px 0 0;
-        font-size: 0.75rem;
+        margin: 1px 0 0;
+        font-size: 0.7rem;
         color: var(--text-muted);
       }
 
-      /* ---------------- Panels ---------------- */
       .panel {
         background: var(--panel);
         border-radius: var(--radius-lg);
-        padding: 14px;
-        margin-top: 14px;
-        border: 1px solid rgba(250, 204, 21, 0.12);
+        padding: 12px 12px 10px;
+        margin-top: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.25);
       }
 
       h2 {
         font-size: 0.8rem;
         text-transform: uppercase;
         letter-spacing: 0.1em;
-        margin: 0 0 10px;
+        margin: 0 0 8px;
         color: var(--accent);
       }
 
       label {
+        display: block;
         font-size: 0.75rem;
         color: var(--text-muted);
         margin-bottom: 4px;
-        display: block;
       }
 
       input {
         width: 100%;
-        padding: 9px 11px;
-        margin-bottom: 10px;
-        background: #0b1120;
+        padding: 8px 10px;
+        margin-bottom: 9px;
+        background: #020617;
         color: var(--text-main);
         border-radius: var(--radius-md);
-        border: 1px solid rgba(250, 204, 21, 0.4);
-        outline: none;
+        border: 1px solid rgba(250, 204, 21, 0.5);
         font-size: 0.85rem;
+        outline: none;
       }
 
       input:focus {
@@ -124,12 +119,12 @@
 
       button {
         width: 100%;
-        padding: 10px;
+        padding: 9px 10px;
         margin-top: 6px;
-        font-size: 0.8rem;
-        border: none;
         border-radius: var(--radius-md);
+        border: none;
         cursor: pointer;
+        font-size: 0.8rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         transition: 0.15s;
@@ -157,6 +152,13 @@
         background: rgba(250, 204, 21, 0.08);
       }
 
+      button:disabled {
+        opacity: 0.5;
+        box-shadow: none;
+        transform: none;
+        cursor: default;
+      }
+
       .status {
         font-size: 0.75rem;
         margin-top: 6px;
@@ -171,13 +173,12 @@
         color: var(--danger);
       }
 
-      /* ---------------- Card ---------------- */
       .card-panel {
-        background: #0a0f1c;
+        background: #020617;
         border-radius: var(--radius-lg);
-        padding: 14px;
+        padding: 11px;
         border: 1px solid rgba(250, 204, 21, 0.25);
-        box-shadow: 0 0 20px rgba(250, 204, 21, 0.12);
+        box-shadow: 0 0 18px rgba(250, 204, 21, 0.12);
       }
 
       .card-empty {
@@ -187,15 +188,14 @@
       }
 
       .card-title {
-        font-size: 1rem;
+        font-size: 0.95rem;
         font-weight: 600;
-        color: white;
         margin-bottom: 2px;
       }
 
       .card-rarity {
         font-size: 0.7rem;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.08em;
         color: var(--accent);
       }
 
@@ -205,21 +205,9 @@
       }
 
       .card-owner {
-        color: var(--accent);
         font-size: 0.8rem;
+        color: var(--accent);
         font-weight: 500;
-      }
-
-      /* ---------------- Desktop Enhancements ---------------- */
-      @media (min-width: 750px) {
-        .page {
-          max-width: 900px;
-        }
-        .grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-        }
       }
     </style>
 
@@ -237,84 +225,61 @@
           </div>
         </div>
 
-        <div class="grid">
-          <!-- LEFT SIDE -->
-          <div>
-            <!-- Account Panel -->
-            <div class="panel">
-              <h2>Account</h2>
+        <!-- Account -->
+        <div class="panel">
+          <h2>Account</h2>
+          <label>Email</label>
+          <input id="email" type="email" />
+          <label>Password</label>
+          <input id="password" type="password" />
+          <button id="login" class="btn-primary">Log in / Sign up</button>
+          <div id="auth-status" class="status"></div>
+        </div>
 
-              <label>Email</label>
-              <input id="email" type="email" />
+        <!-- Username -->
+        <div class="panel">
+          <h2>Username</h2>
+          <input id="username" placeholder="Pick a username" />
+          <button id="save-username" class="btn-ghost">Save username</button>
+          <div id="username-status" class="status"></div>
+        </div>
 
-              <label>Password</label>
-              <input id="password" type="password" />
+        <!-- Lookup -->
+        <div class="panel">
+          <h2>Card Lookup</h2>
+          <label>UID</label>
+          <input id="uid" placeholder="TEST-001" />
+          <button id="lookup" class="btn-primary">Lookup card</button>
+        </div>
 
-              <button id="login" class="btn-primary">Log in / Sign up</button>
-              <div id="auth-status" class="status"></div>
+        <!-- Card -->
+        <div class="panel">
+          <h2>Card</h2>
+          <div class="card-panel">
+            <div id="card-empty" class="card-empty">
+              No card loaded yet. Scan a QR or enter a UID.
             </div>
-
-            <!-- Username Panel -->
-            <div class="panel">
-              <h2>Username</h2>
-
-              <input id="username" placeholder="Pick a username" />
-
-              <button id="save-username" class="btn-ghost">
-                Save Username
-              </button>
-              <div id="username-status" class="status"></div>
-            </div>
-          </div>
-
-          <!-- RIGHT SIDE -->
-          <div>
-            <!-- Lookup Panel -->
-            <div class="panel">
-              <h2>Card Lookup</h2>
-
-              <label>UID</label>
-              <input id="uid" placeholder="TEST-001" />
-
-              <button id="lookup" class="btn-primary">Lookup Card</button>
-            </div>
-
-            <!-- Card Panel -->
-            <div class="panel">
-              <h2>Card</h2>
-
-              <div id="cardPanel" class="card-panel">
-                <div id="card-empty" class="card-empty">
-                  No card loaded yet.
-                </div>
-
-                <div id="card-content" style="display: none">
-                  <div class="card-title" id="card-name"></div>
-                  <div class="card-rarity" id="card-rarity"></div>
-
-                  <div style="margin-top: 10px">
-                    <span class="card-owner-label">Registered to: </span>
-                    <span class="card-owner" id="card-owner"></span>
-                  </div>
-                </div>
+            <div id="card-content" style="display: none">
+              <div class="card-title" id="card-name"></div>
+              <div class="card-rarity" id="card-rarity"></div>
+              <div style="margin-top: 8px">
+                <span class="card-owner-label">Registered to: </span>
+                <span class="card-owner" id="card-owner"></span>
               </div>
-
-              <button id="claim" class="btn-primary" disabled>
-                Claim this card
-              </button>
-              <div id="claim-status" class="status"></div>
             </div>
           </div>
+          <button id="claim" class="btn-primary" disabled>
+            Claim this card
+          </button>
+          <div id="claim-status" class="status"></div>
         </div>
       </div>
     </div>
 
-    <!-- EVERYTHING BELOW: JS LOGIC (same as previous version, untouched) -->
     <script>
       const SUPABASE_URL = "https://owzdmecflzxdfbtxvfmb.supabase.co";
       const SUPABASE_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93emRtZWNmbHp4ZGZidHh2Zm1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3OTY3ODYsImV4cCI6MjA3OTM3Mjc4Nn0.fUa-kAsMP-j_1QM63pgb7oX4wyuJPuZ2touDHNbtMkM";
-
       const TABLE_NAME = "QR Data";
 
       const { createClient } = supabase;
@@ -438,7 +403,6 @@
 
       document.getElementById("lookup").onclick = async () => {
         const uid = document.getElementById("uid").value.trim();
-
         if (!uid) return showEmpty("Enter a UID.");
 
         currentCardUID = uid;
@@ -465,14 +429,13 @@
           const currentUser = session.session?.user;
 
           if (currentUser && currentUser.id === data.registered_to) {
-            ownerText = profile?.username + " (you)";
+            ownerText = (profile?.username || "(no username)") + " (you)";
           } else {
             ownerText = profile?.username || "Another player";
           }
         }
 
         showCard(data.card_name, data.rarity, ownerText);
-
         document.getElementById("claim").disabled = !!data.registered_to;
       };
 
@@ -506,7 +469,6 @@
         claimStatusEl.textContent = "You claimed this card!";
         claimStatusEl.className = "status ok";
         document.getElementById("claim").disabled = true;
-
         document.getElementById("lookup").click();
       };
 
