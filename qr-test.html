@@ -26,86 +26,136 @@
     </style>
   </head>
   <body>
-  <h1>Biome Card Lookup Test</h1>
+  <h1>Biome Card Lookup & Claim</h1>
 
-  <label for="uid">UID:</label>
-  <input id="uid" placeholder="e.g. TEST-001" />
+  <!-- LOGIN -->
+  <h2>Account</h2>
+  <label>Email</label>
+  <input id="email" type="email" placeholder="you@example.com" />
+  <label>Password</label>
+  <input id="password" type="password" placeholder="Your password" />
+  <button id="login">Log in / Sign up</button>
+  <div id="auth-status"></div>
 
-  <button onclick="lookupCard()">Lookup Card</button>
+  <!-- LOOKUP -->
+  <h2>Card Lookup</h2>
+  <label>UID:</label>
+  <input id="uid" placeholder="TEST-001" />
+  <button id="lookup">Lookup Card</button>
 
-  <h2>Result</h2>
   <pre id="result">No card loaded yet.</pre>
 
+  <button id="claim" disabled>Claim this card</button>
+  <div id="claim-status"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
       // 👇 FILL THESE 3 VALUES FROM SUPABASE
       const SUPABASE_URL = "https://owzdmecflzxdfbtxvfmb.supabase.co";
       const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93emRtZWNmbHp4ZGZidHh2Zm1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3OTY3ODYsImV4cCI6MjA3OTM3Mjc4Nn0.fUa-kAsMP-j_1QM63pgb7oX4wyuJPuZ2touDHNbtMkM";
       const TABLE_NAME = "QR Data"; // e.g. "cards"
 
-    async function lookupCard(uidFromParam) {
-      const uidInput = document.getElementById("uid");
-      const result = document.getElementById("result");
-      const uid = (uidFromParam || uidInput.value || "").trim();
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-      if (!uid) {
-        result.textContent = "Please enter a UID.";
+    let currentCardUID = null;
+
+    // ---- Login ----
+    document.getElementById("login").onclick = async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      let { data, error } = await db.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        // maybe they don't exist → sign them up
+        let signUp = await db.auth.signUp({ email, password });
+        document.getElementById("auth-status").textContent =
+          "Signed up. Check email if needed.";
+      } else {
+        document.getElementById("auth-status").textContent =
+          "Logged in as: " + data.user.email;
+      }
+    };
+
+    // ---- Lookup ----
+    async function lookup(uid) {
+      const r = document.getElementById("result");
+      currentCardUID = uid;
+      r.textContent = "Loading...";
+
+      let { data, error } = await db
+        .from(TABLE_NAME)
+        .select("*")
+        .eq("uid", uid)
+        .maybeSingle();
+
+      if (!data) {
+        r.textContent = "Card not found.";
+        document.getElementById("claim").disabled = true;
         return;
       }
 
-      // keep input in sync if called from URL
-      uidInput.value = uid;
+      r.textContent =
+        `Card Name: ${data.card_name}\n` +
+        `Rarity: ${data.rarity}\n` +
+        `Registered To: ${data.registered_to || "(unregistered)"}\n`;
 
-      result.textContent = "Loading...";
-
-      const url = `${SUPABASE_URL}/rest/v1/${TABLE_NAME}?uid=eq.${encodeURIComponent(
-        uid
-      )}`;
-
-      try {
-        const response = await fetch(url, {
-          headers: {
-            apikey: SUPABASE_KEY,
-            Authorization: `Bearer ${SUPABASE_KEY}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        const data = await response.json();
-        console.log("Supabase response:", data);
-
-        if (!Array.isArray(data) || data.length === 0) {
-          result.textContent = "UID not found.";
-          return;
-        }
-
-        const card = data[0];
-
-        const name = card.card_name || "(no card_name field)";
-        const rarity = card.rarity || "(no rarity field)";
-        const registeredTo =
-          card.registered_to || "(unregistered or no registered_to field)";
-
-        result.textContent =
-          `Card Name: ${name}\n` +
-          `Rarity: ${rarity}\n` +
-          `Registered To: ${registeredTo}\n\n` +
-          `Full JSON:\n` +
-          JSON.stringify(card, null, 2);
-      } catch (err) {
-        console.error(err);
-        result.textContent = "Error talking to Supabase. Check console.";
-      }
+      // enable claim if unregistered
+      document.getElementById("claim").disabled = !!data.registered_to;
     }
 
-    // 🔥 On page load: auto-check URL for ?uid=...
-    (function autoFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      const uid = params.get("uid");
-      if (uid) {
-        lookupCard(uid);
+    document.getElementById("lookup").onclick = () => {
+      const uid = document.getElementById("uid").value;
+      lookup(uid);
+    };
+
+    // ---- Claim ----
+    document.getElementById("claim").onclick = async () => {
+      const cs = document.getElementById("claim-status");
+
+      // need a user
+      const session = await db.auth.getSession();
+      if (!session.data.session) {
+        cs.textContent = "You must log in first.";
+        return;
       }
-    })();
+
+      const userId = session.data.session.user.id;
+
+      let { data, error } = await db
+        .from(TABLE_NAME)
+        .update({
+          registered_to: userId,
+          registered_at: new Date().toISOString(),
+        })
+        .eq("uid", currentCardUID)
+        .is("registered_to", null) // CLAIM ONLY IF STILL UNREGISTERED
+        .select()
+        .maybeSingle();
+
+      if (!data) {
+        cs.textContent = "Too late, someone claimed it first!";
+        lookup(currentCardUID);
+        return;
+      }
+
+      cs.textContent = "You claimed this card!";
+      lookup(currentCardUID);
+    };
+
+    // ---- Auto-load from URL ----
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("uid")) {
+      const auto = params.get("uid");
+      document.getElementById("uid").value = auto;
+      lookup(auto);
+    }
   </script>
 </body>
+
 
 </html>
