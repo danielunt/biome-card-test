@@ -99,10 +99,28 @@
         return;
       }
 
+      const name = data.card_name || "(no card_name)";
+      const rarity = data.rarity || "(no rarity)";
+
+      let displayRegisteredTo = "(unregistered)";
+
+      if (data.registered_to) {
+        // check logged-in user
+        const sessionRes = await db.auth.getSession();
+        const currentUser = sessionRes.data.session?.user;
+
+        if (currentUser && currentUser.id === data.registered_to) {
+          displayRegisteredTo = `${currentUser.email} (you)`;
+        } else {
+          displayRegisteredTo = "Another player";
+        }
+      }
+
       r.textContent =
-        `Card Name: ${data.card_name}\n` +
-        `Rarity: ${data.rarity}\n` +
-        `Registered To: ${data.registered_to || "(unregistered)"}\n`;
+        `Card Name: ${name}\n` +
+        `Rarity: ${rarity}\n` +
+        `Registered To: ${displayRegisteredTo}\n`;
+
 
       // enable claim if unregistered
       document.getElementById("claim").disabled = !!data.registered_to;
