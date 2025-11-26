@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Biome Supabase Test</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        padding: 20px;
+        max-width: 400px;
+        margin: 0 auto;
+      }
+      label,
+      input,
+      button {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+      }
+      pre {
+        background: #f4f4f4;
+        padding: 10px;
+        border-radius: 6px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+  <h1>Biome Card Lookup Test</h1>
+
+  <label for="uid">UID:</label>
+  <input id="uid" placeholder="e.g. TEST-001" />
+
+  <button onclick="lookupCard()">Lookup Card</button>
+
+  <h2>Result</h2>
+  <pre id="result">No card loaded yet.</pre>
+
+  <script>
+      // 👇 FILL THESE 3 VALUES FROM SUPABASE
+      const SUPABASE_URL = "https://owzdmecflzxdfbtxvfmb.supabase.co";
+      const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93emRtZWNmbHp4ZGZidHh2Zm1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3OTY3ODYsImV4cCI6MjA3OTM3Mjc4Nn0.fUa-kAsMP-j_1QM63pgb7oX4wyuJPuZ2touDHNbtMkM";
+      const TABLE_NAME = "QR Data"; // e.g. "cards"
+
+    async function lookupCard(uidFromParam) {
+      const uidInput = document.getElementById("uid");
+      const result = document.getElementById("result");
+      const uid = (uidFromParam || uidInput.value || "").trim();
+
+      if (!uid) {
+        result.textContent = "Please enter a UID.";
+        return;
+      }
+
+      // keep input in sync if called from URL
+      uidInput.value = uid;
+
+      result.textContent = "Loading...";
+
+      const url = `${SUPABASE_URL}/rest/v1/${TABLE_NAME}?uid=eq.${encodeURIComponent(
+        uid
+      )}`;
+
+      try {
+        const response = await fetch(url, {
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+        console.log("Supabase response:", data);
+
+        if (!Array.isArray(data) || data.length === 0) {
+          result.textContent = "UID not found.";
+          return;
+        }
+
+        const card = data[0];
+
+        const name = card.card_name || "(no card_name field)";
+        const rarity = card.rarity || "(no rarity field)";
+        const registeredTo =
+          card.registered_to || "(unregistered or no registered_to field)";
+
+        result.textContent =
+          `Card Name: ${name}\n` +
+          `Rarity: ${rarity}\n` +
+          `Registered To: ${registeredTo}\n\n` +
+          `Full JSON:\n` +
+          JSON.stringify(card, null, 2);
+      } catch (err) {
+        console.error(err);
+        result.textContent = "Error talking to Supabase. Check console.";
+      }
+    }
+
+    // 🔥 On page load: auto-check URL for ?uid=...
+    (function autoFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const uid = params.get("uid");
+      if (uid) {
+        lookupCard(uid);
+      }
+    })();
+  </script>
+</body>
+
+</html>
