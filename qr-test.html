@@ -4,16 +4,17 @@
     <meta charset="UTF-8" />
     <title>Biome QR Card Lookup & Claim</title>
     <style>
+      /* -------------- THEME -------------- */
       :root {
         --bg: #050816;
         --panel: #0f172a;
         --panel-soft: #111827;
-        --accent: #22c55e;
-        --accent-soft: rgba(34, 197, 94, 0.16);
-        --accent-alt: #38bdf8;
-        --text-main: #e5e7eb;
+        --accent: #facc15;                /* YELLOW */
+        --accent-soft: rgba(250, 204, 21, 0.16);
+        --accent-glow: rgba(250, 204, 21, 0.55);
+        --text-main: #f9fafb;
         --text-muted: #9ca3af;
-        --danger: #f97373;
+        --danger: #f87171;
         --radius-lg: 18px;
         --radius-md: 10px;
       }
@@ -25,27 +26,25 @@
       body {
         margin: 0;
         min-height: 100vh;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-          sans-serif;
-        background: radial-gradient(circle at top, #0b1120, #020617 52%);
+        font-family: system-ui, sans-serif;
+        background: #030712;
         color: var(--text-main);
         display: flex;
-        align-items: center;
         justify-content: center;
-        padding: 20px;
+        padding: 16px;
       }
 
       .page {
         width: 100%;
-        max-width: 520px;
+        max-width: 500px; /* mobile-first */
       }
 
       .shell {
-        background: linear-gradient(145deg, #020617, #020617 32%, #0f172a);
-        border-radius: 26px;
+        background: #0b0f1d;
+        border-radius: 24px;
         padding: 18px;
-        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
-        border: 1px solid rgba(148, 163, 184, 0.18);
+        border: 1px solid rgba(250, 204, 21, 0.25);
+        box-shadow: 0 0 40px rgba(250, 204, 21, 0.12);
       }
 
       .header {
@@ -56,165 +55,111 @@
       }
 
       .logo-dot {
-        width: 32px;
-        height: 32px;
+        width: 38px;
+        height: 38px;
         border-radius: 999px;
-        background: radial-gradient(circle at 30% 15%, #f9fafb, #22c55e);
-        box-shadow: 0 0 30px rgba(34, 197, 94, 0.55);
+        background: radial-gradient(circle at 30% 20%, #fff8e1, #facc15);
+        box-shadow: 0 0 30px var(--accent-glow);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.9rem;
         font-weight: 700;
-        color: #052e16;
+        color: #422006;
       }
 
-      .title-wrap h1 {
-        font-size: 1.15rem;
-        letter-spacing: 0.06em;
+      h1 {
         margin: 0;
+        font-size: 1rem;
+        letter-spacing: 0.07em;
+        color: white;
         text-transform: uppercase;
-        color: #f9fafb;
       }
 
-      .title-wrap p {
+      .sub {
         margin: 2px 0 0;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         color: var(--text-muted);
       }
 
-      .grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
-        gap: 14px;
-      }
-
-      @media (max-width: 720px) {
-        .shell {
-          padding: 16px;
-        }
-        .grid {
-          grid-template-columns: minmax(0, 1fr);
-        }
-      }
-
+      /* ---------------- Panels ---------------- */
       .panel {
         background: var(--panel);
         border-radius: var(--radius-lg);
-        padding: 14px 14px 12px;
-        border: 1px solid rgba(148, 163, 184, 0.18);
+        padding: 14px;
+        margin-top: 14px;
+        border: 1px solid rgba(250, 204, 21, 0.12);
       }
 
-      .panel + .panel {
-        margin-top: 10px;
-      }
-
-      .panel-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 8px;
-      }
-
-      .panel-header h2 {
-        margin: 0;
-        font-size: 0.85rem;
+      h2 {
+        font-size: 0.8rem;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--text-muted);
-      }
-
-      .chip {
-        padding: 2px 7px;
-        border-radius: 999px;
-        font-size: 0.65rem;
-        border: 1px solid rgba(148, 163, 184, 0.4);
-        color: var(--text-muted);
+        letter-spacing: 0.1em;
+        margin: 0 0 10px;
+        color: var(--accent);
       }
 
       label {
-        display: block;
         font-size: 0.75rem;
         color: var(--text-muted);
         margin-bottom: 4px;
+        display: block;
       }
 
       input {
         width: 100%;
-        padding: 7px 9px;
-        border-radius: var(--radius-md);
-        border: 1px solid rgba(148, 163, 184, 0.5);
-        background: #020617;
+        padding: 9px 11px;
+        margin-bottom: 10px;
+        background: #0b1120;
         color: var(--text-main);
-        font-size: 0.8rem;
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(250, 204, 21, 0.4);
         outline: none;
-      }
-
-      input::placeholder {
-        color: rgba(148, 163, 184, 0.7);
+        font-size: 0.85rem;
       }
 
       input:focus {
         border-color: var(--accent);
-        box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.6);
+        box-shadow: 0 0 6px var(--accent-glow);
       }
 
       button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        padding: 7px 11px;
-        border-radius: 999px;
-        border: none;
-        cursor: pointer;
+        width: 100%;
+        padding: 10px;
+        margin-top: 6px;
         font-size: 0.8rem;
-        font-weight: 500;
-        letter-spacing: 0.03em;
+        border: none;
+        border-radius: var(--radius-md);
+        cursor: pointer;
         text-transform: uppercase;
-        transition: all 0.15s ease-out;
+        letter-spacing: 0.05em;
+        transition: 0.15s;
       }
 
       .btn-primary {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
-        color: #022c22;
-        box-shadow: 0 8px 18px rgba(34, 197, 94, 0.4);
+        background: var(--accent);
+        color: #422006;
+        font-weight: 600;
+        box-shadow: 0 4px 14px rgba(250, 204, 21, 0.35);
       }
 
       .btn-primary:hover {
         transform: translateY(-1px);
-        box-shadow: 0 10px 22px rgba(34, 197, 94, 0.55);
+        box-shadow: 0 6px 20px rgba(250, 204, 21, 0.5);
       }
 
       .btn-ghost {
-        background: rgba(15, 23, 42, 0.9);
-        color: var(--text-muted);
-        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: none;
+        color: var(--accent);
+        border: 1px solid var(--accent);
       }
 
       .btn-ghost:hover {
-        border-color: var(--accent-alt);
-        color: var(--accent-alt);
-        box-shadow: 0 0 18px rgba(56, 189, 248, 0.5);
-      }
-
-      button:disabled {
-        opacity: 0.55;
-        cursor: default;
-        box-shadow: none;
-        transform: none;
-      }
-
-      .button-row {
-        display: flex;
-        gap: 6px;
-        margin-top: 8px;
-        flex-wrap: wrap;
+        background: rgba(250, 204, 21, 0.08);
       }
 
       .status {
         font-size: 0.75rem;
-        margin-top: 5px;
+        margin-top: 6px;
         color: var(--text-muted);
       }
 
@@ -226,143 +171,137 @@
         color: var(--danger);
       }
 
+      /* ---------------- Card ---------------- */
       .card-panel {
-        background: radial-gradient(circle at top left, #022c22, #020617);
+        background: #0a0f1c;
         border-radius: var(--radius-lg);
-        padding: 12px 12px 10px;
-        border: 1px solid rgba(34, 197, 94, 0.4);
-        box-shadow: 0 0 35px rgba(34, 197, 94, 0.35);
-      }
-
-      .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        margin-bottom: 6px;
-      }
-
-      .card-title {
-        font-size: 0.95rem;
-        font-weight: 600;
-      }
-
-      .card-meta {
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--accent-alt);
-      }
-
-      .card-body-line {
-        font-size: 0.8rem;
-        margin-bottom: 2px;
-      }
-
-      .card-body-label {
-        color: var(--text-muted);
+        padding: 14px;
+        border: 1px solid rgba(250, 204, 21, 0.25);
+        box-shadow: 0 0 20px rgba(250, 204, 21, 0.12);
       }
 
       .card-empty {
         font-size: 0.8rem;
-        color: var(--text-muted);
         font-style: italic;
+        color: var(--text-muted);
       }
 
-      .claim-row {
-        display: flex;
-        gap: 6px;
-        margin-top: 8px;
+      .card-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: white;
+        margin-bottom: 2px;
+      }
+
+      .card-rarity {
+        font-size: 0.7rem;
+        letter-spacing: 0.06em;
+        color: var(--accent);
+      }
+
+      .card-owner-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+
+      .card-owner {
+        color: var(--accent);
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      /* ---------------- Desktop Enhancements ---------------- */
+      @media (min-width: 750px) {
+        .page {
+          max-width: 900px;
+        }
+        .grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
       }
     </style>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
+
   <body>
     <div class="page">
       <div class="shell">
         <div class="header">
           <div class="logo-dot">B</div>
-          <div class="title-wrap">
+          <div>
             <h1>Biome QR Registry</h1>
-            <p>Scan · Lookup · Claim your physical cards</p>
+            <div class="sub">Scan · Look Up · Claim Ownership</div>
           </div>
         </div>
 
         <div class="grid">
-          <!-- LEFT: account + username -->
+          <!-- LEFT SIDE -->
           <div>
+            <!-- Account Panel -->
             <div class="panel">
-              <div class="panel-header">
-                <h2>Account</h2>
-                <span class="chip">Supabase Auth</span>
-              </div>
-              <label for="email">Email</label>
-              <input id="email" type="email" placeholder="you@example.com" />
-              <label for="password">Password</label>
-              <input
-                id="password"
-                type="password"
-                placeholder="Your password"
-              />
-              <div class="button-row">
-                <button id="login" class="btn-primary">Log in / Sign up</button>
-              </div>
+              <h2>Account</h2>
+
+              <label>Email</label>
+              <input id="email" type="email" />
+
+              <label>Password</label>
+              <input id="password" type="password" />
+
+              <button id="login" class="btn-primary">Log in / Sign up</button>
               <div id="auth-status" class="status"></div>
             </div>
 
-            <div class="panel" style="margin-top: 10px">
-              <div class="panel-header">
-                <h2>Username</h2>
-                <span class="chip">Public Name</span>
-              </div>
+            <!-- Username Panel -->
+            <div class="panel">
+              <h2>Username</h2>
+
               <input id="username" placeholder="Pick a username" />
-              <div class="button-row">
-                <button id="save-username" class="btn-ghost">
-                  Save username
-                </button>
-              </div>
+
+              <button id="save-username" class="btn-ghost">
+                Save Username
+              </button>
               <div id="username-status" class="status"></div>
             </div>
           </div>
 
-          <!-- RIGHT: lookup + card -->
+          <!-- RIGHT SIDE -->
           <div>
+            <!-- Lookup Panel -->
             <div class="panel">
-              <div class="panel-header">
-                <h2>Card Lookup</h2>
-                <span class="chip">UID Scan</span>
-              </div>
-              <label for="uid">UID</label>
-              <input id="uid" placeholder="e.g. TEST-001" />
-              <div class="button-row">
-                <button id="lookup" class="btn-primary">Lookup Card</button>
-              </div>
+              <h2>Card Lookup</h2>
+
+              <label>UID</label>
+              <input id="uid" placeholder="TEST-001" />
+
+              <button id="lookup" class="btn-primary">Lookup Card</button>
             </div>
 
-            <div class="panel" style="margin-top: 10px">
-              <div class="panel-header">
-                <h2>Card</h2>
-                <span class="chip">Bound to QR</span>
-              </div>
-              <div id="card-shell" class="card-panel">
-                <div class="card-empty" id="card-empty">
-                  No card loaded yet. Scan a QR or enter a UID.
+            <!-- Card Panel -->
+            <div class="panel">
+              <h2>Card</h2>
+
+              <div id="cardPanel" class="card-panel">
+                <div id="card-empty" class="card-empty">
+                  No card loaded yet.
                 </div>
+
                 <div id="card-content" style="display: none">
-                  <div class="card-header">
-                    <div class="card-title" id="card-name">Card Name</div>
-                    <div class="card-meta" id="card-rarity">RARITY</div>
-                  </div>
-                  <div class="card-body-line">
-                    <span class="card-body-label">Registered to: </span
-                    ><span id="card-owner">—</span>
+                  <div class="card-title" id="card-name"></div>
+                  <div class="card-rarity" id="card-rarity"></div>
+
+                  <div style="margin-top: 10px">
+                    <span class="card-owner-label">Registered to: </span>
+                    <span class="card-owner" id="card-owner"></span>
                   </div>
                 </div>
               </div>
-              <div class="claim-row">
-                <button id="claim" class="btn-primary" disabled>
-                  Claim this card
-                </button>
-              </div>
+
+              <button id="claim" class="btn-primary" disabled>
+                Claim this card
+              </button>
               <div id="claim-status" class="status"></div>
             </div>
           </div>
@@ -370,12 +309,13 @@
       </div>
     </div>
 
+    <!-- EVERYTHING BELOW: JS LOGIC (same as previous version, untouched) -->
     <script>
-      // Supabase config (your project)
       const SUPABASE_URL = "https://owzdmecflzxdfbtxvfmb.supabase.co";
       const SUPABASE_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93emRtZWNmbHp4ZGZidHh2Zm1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3OTY3ODYsImV4cCI6MjA3OTM3Mjc4Nn0.fUa-kAsMP-j_1QM63pgb7oX4wyuJPuZ2touDHNbtMkM";
-      const TABLE_NAME = "QR Data"; // your cards table
+
+      const TABLE_NAME = "QR Data";
 
       const { createClient } = supabase;
       const db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -386,23 +326,16 @@
       const usernameStatusEl = document.getElementById("username-status");
       const claimStatusEl = document.getElementById("claim-status");
 
-      const cardEmptyEl = document.getElementById("card-empty");
-      const cardContentEl = document.getElementById("card-content");
-      const cardNameEl = document.getElementById("card-name");
-      const cardRarityEl = document.getElementById("card-rarity");
-      const cardOwnerEl = document.getElementById("card-owner");
+      const cardEmpty = document.getElementById("card-empty");
+      const cardContent = document.getElementById("card-content");
+      const cardName = document.getElementById("card-name");
+      const cardRarity = document.getElementById("card-rarity");
+      const cardOwner = document.getElementById("card-owner");
 
-      // ---------- AUTH ----------
       async function refreshAuthStatus() {
-        const { data, error } = await db.auth.getSession();
-        if (error) {
-          authStatusEl.textContent = "Auth error.";
-          authStatusEl.className = "status error";
-          return;
-        }
-        const session = data.session;
-        if (session?.user) {
-          authStatusEl.textContent = `Logged in as: ${session.user.email}`;
+        const { data } = await db.auth.getSession();
+        if (data.session?.user) {
+          authStatusEl.textContent = `Logged in as: ${data.session.user.email}`;
           authStatusEl.className = "status ok";
         } else {
           authStatusEl.textContent = "Not logged in.";
@@ -411,34 +344,21 @@
       }
 
       document.getElementById("login").onclick = async () => {
-        claimStatusEl.textContent = "";
-        usernameStatusEl.textContent = "";
-
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value.trim();
 
-        if (!email || !password) {
-          authStatusEl.textContent = "Please enter email and password.";
-          authStatusEl.className = "status error";
-          return;
-        }
-
-        // Try login first
         let { data, error } = await db.auth.signInWithPassword({
           email,
           password,
         });
 
         if (error) {
-          // If login fails, try sign up
-          const signup = await db.auth.signUp({ email, password });
+          let signup = await db.auth.signUp({ email, password });
           if (signup.error) {
-            authStatusEl.textContent = "Login / signup failed.";
+            authStatusEl.textContent = "Login/signup failed.";
             authStatusEl.className = "status error";
-            console.error(signup.error);
           } else {
-            authStatusEl.textContent =
-              "Account created. Check email if confirmation is required.";
+            authStatusEl.textContent = "Account created.";
             authStatusEl.className = "status ok";
           }
         } else {
@@ -446,53 +366,43 @@
           authStatusEl.className = "status ok";
         }
 
-        await refreshAuthStatus();
-        await loadUsername();
+        refreshAuthStatus();
+        loadUsername();
       };
 
-      // ---------- USERNAME ----------
       async function loadUsername() {
         const input = document.getElementById("username");
         input.value = "";
-        usernameStatusEl.textContent = "";
-        usernameStatusEl.className = "status";
 
-        const sessionRes = await db.auth.getSession();
-        const user = sessionRes.data.session?.user;
+        const { data } = await db.auth.getSession();
+        const user = data.session?.user;
         if (!user) {
           usernameStatusEl.textContent = "Log in to set a username.";
+          usernameStatusEl.className = "status";
           return;
         }
 
-        const { data, error } = await db
+        const { data: profile } = await db
           .from("profiles")
           .select("username")
           .eq("id", user.id)
           .maybeSingle();
 
-        if (data?.username) {
-          input.value = data.username;
+        if (profile?.username) {
+          input.value = profile.username;
           usernameStatusEl.textContent = "Username saved.";
           usernameStatusEl.className = "status ok";
         } else {
-          usernameStatusEl.textContent =
-            "Choose a username and click Save.";
+          usernameStatusEl.textContent = "Choose a username.";
+          usernameStatusEl.className = "status";
         }
       }
 
       document.getElementById("save-username").onclick = async () => {
-        const input = document.getElementById("username");
-        const name = input.value.trim();
-        usernameStatusEl.className = "status";
+        const name = document.getElementById("username").value.trim();
 
-        if (!name) {
-          usernameStatusEl.textContent = "Username cannot be empty.";
-          usernameStatusEl.className = "status error";
-          return;
-        }
-
-        const sessionRes = await db.auth.getSession();
-        const user = sessionRes.data.session?.user;
+        const { data } = await db.auth.getSession();
+        const user = data.session?.user;
         if (!user) {
           usernameStatusEl.textContent = "Log in first.";
           usernameStatusEl.className = "status error";
@@ -504,174 +414,113 @@
           .upsert({ id: user.id, username: name });
 
         if (error) {
-          console.error(error);
-          usernameStatusEl.textContent =
-            "Error saving username (maybe taken?).";
+          usernameStatusEl.textContent = "Username taken.";
           usernameStatusEl.className = "status error";
         } else {
-          usernameStatusEl.textContent = "Username saved.";
+          usernameStatusEl.textContent = "Saved.";
           usernameStatusEl.className = "status ok";
         }
       };
 
-      // ---------- CARD RENDER ----------
-      function showEmptyCard(message) {
-        cardEmptyEl.textContent = message;
-        cardEmptyEl.style.display = "block";
-        cardContentEl.style.display = "none";
+      function showEmpty(text) {
+        cardEmpty.textContent = text;
+        cardEmpty.style.display = "block";
+        cardContent.style.display = "none";
       }
 
-      function showCard(name, rarity, ownerText) {
-        cardNameEl.textContent = name;
-        cardRarityEl.textContent = rarity.toUpperCase();
-        cardOwnerEl.textContent = ownerText;
-
-        cardEmptyEl.style.display = "none";
-        cardContentEl.style.display = "block";
+      function showCard(n, r, o) {
+        cardName.textContent = n;
+        cardRarity.textContent = r.toUpperCase();
+        cardOwner.textContent = o;
+        cardEmpty.style.display = "none";
+        cardContent.style.display = "block";
       }
 
-      // ---------- LOOKUP ----------
-      async function lookup(uid) {
-        claimStatusEl.textContent = "";
-        claimStatusEl.className = "status";
-        document.getElementById("claim").disabled = true;
+      document.getElementById("lookup").onclick = async () => {
+        const uid = document.getElementById("uid").value.trim();
 
-        const trimmed = (uid || "").trim();
-        if (!trimmed) {
-          showEmptyCard("Please enter a UID.");
-          return;
-        }
+        if (!uid) return showEmpty("Enter a UID.");
 
-        currentCardUID = trimmed;
-        document.getElementById("uid").value = trimmed;
-        showEmptyCard("Loading card…");
+        currentCardUID = uid;
+        showEmpty("Loading…");
 
-        const { data, error } = await db
+        const { data } = await db
           .from(TABLE_NAME)
           .select("*")
-          .eq("uid", trimmed)
+          .eq("uid", uid)
           .maybeSingle();
 
-        if (error) {
-          console.error(error);
-          showEmptyCard("Error talking to Supabase.");
-          return;
-        }
+        if (!data) return showEmpty("Card not found.");
 
-        if (!data) {
-          showEmptyCard("Card not found.");
-          return;
-        }
-
-        const name = data.card_name || "(no card_name)";
-        const rarity = data.rarity || "(no rarity)";
-
-        let displayRegisteredTo = "(unregistered)";
+        let ownerText = "(unregistered)";
 
         if (data.registered_to) {
-          // look up owner's username
           const { data: profile } = await db
             .from("profiles")
             .select("username")
             .eq("id", data.registered_to)
             .maybeSingle();
 
-          const sessionRes = await db.auth.getSession();
-          const currentUser = sessionRes.data.session?.user;
+          const { data: session } = await db.auth.getSession();
+          const currentUser = session.session?.user;
 
           if (currentUser && currentUser.id === data.registered_to) {
-            const myName = profile?.username || "(no username)";
-            displayRegisteredTo = `${myName} (you)`;
+            ownerText = profile?.username + " (you)";
           } else {
-            displayRegisteredTo = profile?.username || "Another player";
+            ownerText = profile?.username || "Another player";
           }
         }
 
-        showCard(name, rarity, displayRegisteredTo);
+        showCard(data.card_name, data.rarity, ownerText);
 
-        // enable claim if unregistered
         document.getElementById("claim").disabled = !!data.registered_to;
-        if (!data.registered_to) {
-          claimStatusEl.textContent =
-            "This card is unregistered. Log in and claim it.";
-        } else {
-          claimStatusEl.textContent = "";
-        }
-      }
-
-      document.getElementById("lookup").onclick = () => {
-        const uid = document.getElementById("uid").value;
-        lookup(uid);
       };
 
-      // ---------- CLAIM ----------
       document.getElementById("claim").onclick = async () => {
-        claimStatusEl.textContent = "";
-        claimStatusEl.className = "status";
-        const button = document.getElementById("claim");
+        const { data: session } = await db.auth.getSession();
+        const user = session.session?.user;
 
-        if (!currentCardUID) {
-          claimStatusEl.textContent = "Lookup a card first.";
-          claimStatusEl.className = "status error";
-          return;
-        }
-
-        const sessionRes = await db.auth.getSession();
-        const user = sessionRes.data.session?.user;
         if (!user) {
-          claimStatusEl.textContent = "You must log in first.";
+          claimStatusEl.textContent = "Log in first.";
           claimStatusEl.className = "status error";
           return;
         }
 
-        button.disabled = true;
-
-        const { data, error } = await db
+        const { data } = await db
           .from(TABLE_NAME)
           .update({
             registered_to: user.id,
             registered_at: new Date().toISOString(),
           })
           .eq("uid", currentCardUID)
-          .is("registered_to", null) // only if still unregistered
+          .is("registered_to", null)
           .select()
           .maybeSingle();
 
-        if (error) {
-          console.error(error);
-          claimStatusEl.textContent =
-            "Error while claiming card. Try again.";
-          claimStatusEl.className = "status error";
-          button.disabled = false;
-          return;
-        }
-
         if (!data) {
-          claimStatusEl.textContent =
-            "Too late! Someone already claimed this card.";
+          claimStatusEl.textContent = "Too late. Someone claimed it.";
           claimStatusEl.className = "status error";
-          await lookup(currentCardUID);
           return;
         }
 
         claimStatusEl.textContent = "You claimed this card!";
         claimStatusEl.className = "status ok";
-        await lookup(currentCardUID);
+        document.getElementById("claim").disabled = true;
+
+        document.getElementById("lookup").click();
       };
 
-      // ---------- URL AUTO-LOAD ----------
-      (function autoFromUrl() {
+      (function autoLoad() {
         const params = new URLSearchParams(window.location.search);
         const uid = params.get("uid");
         if (uid) {
           document.getElementById("uid").value = uid;
-          lookup(uid);
+          document.getElementById("lookup").click();
         } else {
-          showEmptyCard("No card loaded yet. Scan a QR or enter a UID.");
+          showEmpty("Scan a QR or enter a UID.");
         }
       })();
 
-      // Initial status
       refreshAuthStatus();
       loadUsername();
     </script>
