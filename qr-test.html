@@ -414,31 +414,22 @@
       }
 
       function showCardDisplay(name, rarity, ownerText, imagePath) {
-        cardName.textContent = name || "";
-        cardRarity.textContent = rarity ? rarity.toUpperCase() : "";
-        cardOwner.textContent = ownerText || "";
+      cardName.textContent = name || "";
+      cardRarity.textContent = rarity ? rarity.toUpperCase() : "";
+      cardOwner.textContent = ownerText || "";
 
-        // imagePath is something like "frost-cub.png" or "card-images/frost-cub.png"
-        if (imagePath) {
-          const cleanPath = imagePath.replace(/^card-images\//, "");
-
-          const { data: imageData } = db.storage
-            .from(IMAGE_BUCKET)
-            .getPublicUrl(cleanPath);
-
-          if (imageData?.publicUrl) {
-            cardImage.src = imageData.publicUrl;
-            cardImage.style.display = "block";
-          } else {
-            cardImage.style.display = "none";
-          }
-        } else {
-          cardImage.style.display = "none";
-        }
-
-        cardEmpty.style.display = "none";
-        cardContent.style.display = "block";
+      if (imagePath) {
+        // image_path now contains the full public URL
+        cardImage.src = imagePath;
+        cardImage.style.display = "block";
+      } else {
+        cardImage.style.display = "none";
       }
+
+      cardEmpty.style.display = "none";
+      cardContent.style.display = "block";
+    }
+
 
       // ---- auth flow ----
       async function initScreen() {
