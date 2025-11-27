@@ -187,14 +187,6 @@
         font-weight: 600;
       }
 
-      .pill {
-        padding: 4px 8px;
-        border-radius: 999px;
-        background: var(--card-soft);
-        font-size: 0.7rem;
-        color: var(--text-muted);
-      }
-
       .card-display {
         background: var(--card-soft);
         border-radius: var(--radius-md);
@@ -326,35 +318,33 @@
 
           <div>
             <div class="card-display">
-  <!-- Placeholder (no card yet) -->
-  <div id="card-empty" class="placeholder">
-    No card loaded yet.
-  </div>
+              <!-- Placeholder (no card loaded yet) -->
+              <div id="card-empty" class="placeholder">
+                No card loaded yet.
+              </div>
 
-  <!-- Card content -->
-  <div id="card-content" style="display: none">
-    <img
-      id="card-image"
-      src=""
-      alt="Card artwork"
-      style="
-        width: 100%;
-        border-radius: 12px;
-        margin-bottom: 10px;
-        display: none;
-      "
-    />
+              <!-- Card details -->
+              <div id="card-content" style="display: none">
+                <img
+                  id="card-image"
+                  src=""
+                  alt="Card artwork"
+                  style="
+                    width: 100%;
+                    border-radius: 12px;
+                    margin-bottom: 10px;
+                    display: none;
+                  "
+                />
 
-    <div class="card-name" id="card-name"></div>
-    <div class="card-rarity" id="card-rarity"></div>
-
-    <div class="card-owner-row">
-      <span class="card-owner-label">Registered to: </span>
-      <span class="card-owner-value" id="card-owner"></span>
-    </div>
-  </div>
-</div>
-
+                <div class="card-name" id="card-name"></div>
+                <div class="card-rarity" id="card-rarity"></div>
+                <div class="card-owner-row">
+                  <span class="card-owner-label">Registered to: </span>
+                  <span class="card-owner-value" id="card-owner"></span>
+                </div>
+              </div>
+            </div>
 
             <button id="claim-btn" class="btn-primary" disabled>
               Claim this card
@@ -382,6 +372,7 @@
       const SUPABASE_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93emRtZWNmbHp4ZGZidHh2Zm1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3OTY3ODYsImV4cCI6MjA3OTM3Mjc4Nn0.fUa-kAsMP-j_1QM63pgb7oX4wyuJPuZ2touDHNbtMkM";
       const TABLE_NAME = "QR Data";
+      const IMAGE_BUCKET = "card-images"; // Supabase bucket name
 
       const { createClient } = supabase;
       const db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -397,6 +388,7 @@
 
       const cardEmpty = document.getElementById("card-empty");
       const cardContent = document.getElementById("card-content");
+      const cardImage = document.getElementById("card-image");
       const cardName = document.getElementById("card-name");
       const cardRarity = document.getElementById("card-rarity");
       const cardOwner = document.getElementById("card-owner");
@@ -418,31 +410,35 @@
         cardEmpty.textContent = text;
         cardEmpty.style.display = "block";
         cardContent.style.display = "none";
+        cardImage.style.display = "none";
       }
 
-      async function showCardDisplay(name, rarity, ownerText, imagePath) {
-  cardName.textContent = name;
-  cardRarity.textContent = rarity ? rarity.toUpperCase() : "";
-  cardOwner.textContent = ownerText;
+      function showCardDisplay(name, rarity, ownerText, imagePath) {
+        cardName.textContent = name || "";
+        cardRarity.textContent = rarity ? rarity.toUpperCase() : "";
+        cardOwner.textContent = ownerText || "";
 
-  // Image
-  const img = document.getElementById("card-image");
+        // imagePath is something like "frost-cub.png" or "card-images/frost-cub.png"
+        if (imagePath) {
+          const cleanPath = imagePath.replace(/^card-images\//, "");
 
-  if (imagePath) {
-    const { data } = db.storage
-      .from("card-images")
-      .getPublicUrl(imagePath);
+          const { data: imageData } = db.storage
+            .from(IMAGE_BUCKET)
+            .getPublicUrl(cleanPath);
 
-    img.src = data.publicUrl;
-    img.style.display = "block";
-  } else {
-    img.style.display = "none";
-  }
+          if (imageData?.publicUrl) {
+            cardImage.src = imageData.publicUrl;
+            cardImage.style.display = "block";
+          } else {
+            cardImage.style.display = "none";
+          }
+        } else {
+          cardImage.style.display = "none";
+        }
 
-  cardEmpty.style.display = "none";
-  cardContent.style.display = "block";
-}
-
+        cardEmpty.style.display = "none";
+        cardContent.style.display = "block";
+      }
 
       // ---- auth flow ----
       async function initScreen() {
@@ -573,6 +569,7 @@
 
         currentCardUID = uid;
         claimStatus.textContent = "";
+        claimStatus.className = "status";
 
         showPlaceholder("Loading…");
 
@@ -613,12 +610,11 @@
         }
 
         showCardDisplay(
-  data.card_name,
-  data.rarity,
-  ownerText,
-  data.image_path
-);
-
+          data.card_name,
+          data.rarity,
+          ownerText,
+          data.image_path
+        );
         document.getElementById("claim-btn").disabled = !!data.registered_to;
       };
 
