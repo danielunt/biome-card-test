@@ -326,19 +326,35 @@
 
           <div>
             <div class="card-display">
-              <div id="card-empty" class="placeholder">
-                No card loaded yet.
-              </div>
+  <!-- Placeholder (no card yet) -->
+  <div id="card-empty" class="placeholder">
+    No card loaded yet.
+  </div>
 
-              <div id="card-content" style="display: none">
-                <div class="card-name" id="card-name"></div>
-                <div class="card-rarity" id="card-rarity"></div>
-                <div class="card-owner-row">
-                  <span class="card-owner-label">Registered to: </span>
-                  <span class="card-owner-value" id="card-owner"></span>
-                </div>
-              </div>
-            </div>
+  <!-- Card content -->
+  <div id="card-content" style="display: none">
+    <img
+      id="card-image"
+      src=""
+      alt="Card artwork"
+      style="
+        width: 100%;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        display: none;
+      "
+    />
+
+    <div class="card-name" id="card-name"></div>
+    <div class="card-rarity" id="card-rarity"></div>
+
+    <div class="card-owner-row">
+      <span class="card-owner-label">Registered to: </span>
+      <span class="card-owner-value" id="card-owner"></span>
+    </div>
+  </div>
+</div>
+
 
             <button id="claim-btn" class="btn-primary" disabled>
               Claim this card
@@ -404,13 +420,29 @@
         cardContent.style.display = "none";
       }
 
-      function showCardDisplay(name, rarity, ownerText) {
-        cardName.textContent = name;
-        cardRarity.textContent = rarity ? rarity.toUpperCase() : "";
-        cardOwner.textContent = ownerText;
-        cardEmpty.style.display = "none";
-        cardContent.style.display = "block";
-      }
+      async function showCardDisplay(name, rarity, ownerText, imagePath) {
+  cardName.textContent = name;
+  cardRarity.textContent = rarity ? rarity.toUpperCase() : "";
+  cardOwner.textContent = ownerText;
+
+  // Image
+  const img = document.getElementById("card-image");
+
+  if (imagePath) {
+    const { data } = db.storage
+      .from("card-images")
+      .getPublicUrl(imagePath);
+
+    img.src = data.publicUrl;
+    img.style.display = "block";
+  } else {
+    img.style.display = "none";
+  }
+
+  cardEmpty.style.display = "none";
+  cardContent.style.display = "block";
+}
+
 
       // ---- auth flow ----
       async function initScreen() {
@@ -580,7 +612,13 @@
           }
         }
 
-        showCardDisplay(data.card_name, data.rarity, ownerText);
+        showCardDisplay(
+  data.card_name,
+  data.rarity,
+  ownerText,
+  data.image_path
+);
+
         document.getElementById("claim-btn").disabled = !!data.registered_to;
       };
 
